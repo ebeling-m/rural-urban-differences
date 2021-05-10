@@ -62,28 +62,11 @@ miss16 <- dat16$NUTS.3[!dat16$NUTS.3 %in% link$NUTS3new]
 
 # Respective codes all included in the data in the link file (Object: "link")
 
-
-
 ## Merge AGS to data for 2016 and 2017
-library(plyr)
-head(dat16)
-
 dat16$GeoNew <- mapvalues(dat16$NUTS.3, from = link$NUTS3new, to = link$GeoNew)
 dat17$GeoNew <- mapvalues(dat17$NUTS.3, from = link$NUTS3new, to = link$GeoNew)
 
-head(dat17)
-head(dat18)
-
-dat17[dat17$NUTS.3 == "DEE06",]
-dat17[dat17$GeoNew == "15086",]
-dat18[dat18$GeoNum == "15086",]
-dat17[dat17$GeoNew == "15083",]
-
-
 ## Recode Age and selection of ages needed
-
-unique(dat16$Alter)==unique(dat17$Alter)
-
 ageRecode <- cbind(unique(dat16$Alter), c(rep(1, 13), seq(60, 90, by =
                                                             5), 1))
 ageRecode
@@ -91,221 +74,95 @@ ageRecode
 dat16$AgeNew <- mapvalues(dat16$Alter, from = ageRecode[,1], to = ageRecode[,2])
 dat17$AgeNew <- mapvalues(dat17$Alter, from = ageRecode[,1], to = ageRecode[,2])
 
+# Select only Ages 60+
 dat16.1 <- dat16[dat16$AgeNew > 1,]
 dat17.1 <- dat17[dat17$AgeNew > 1,]
 
-head(dat16.1)
-head(dat18)
+# Age recode for 2018 data
+ageRecode18 <- cbind(unique(dat18$Age), seq(60,90, by = 5))
+ageRecode18
 
-ageRecode <- cbind(unique(dat18$Age), seq(60,90, by = 5))
-ageRecode
-
-dat18$AgeNew <- mapvalues(dat18$Age, from = ageRecode[,1], to = ageRecode[,2])
+dat18$AgeNew <- mapvalues(dat18$Age, from = ageRecode18[,1], to = ageRecode18[,2])
 head(dat18)
 
 ## Modify format of data for 2016 and 2017 to match 2018
+dat16.lm <- dat16.1 %>% select(AgeNew, GeoNew, Männer, Frauen) %>% pivot_longer(cols = c(Frauen, Männer), names_to = "Sex1", 
+                                                                                values_to = "Death") %>%
+            mutate(Sex = mapvalues(Sex1, from = c("Frauen" , "Männer"), to = c(2,1)), Year = 2016) %>% 
+            select(Year, AgeNew, GeoNew, Sex, Death) %>% rename(Age = AgeNew, Geo = GeoNew) %>% as_tibble()
 
-## 2016
-head(dat16.1)
-dat16.1m <- dat16.1[, c("AgeNew", "GeoNew", "Männer")]
-names(dat16.1m)[3] <- "Death"
-dat16.1m$Year <- 2016
-dat16.1m$Sex <- 1
+dat17.lm <- dat17.1 %>% select(AgeNew, GeoNew, Männer, Frauen) %>% pivot_longer(cols = c(Frauen, Männer), names_to = "Sex1", 
+                                                                                values_to = "Death") %>%
+            mutate(Sex = mapvalues(Sex1, from = c("Frauen" , "Männer"), to = c(2,1)), Year = 2017) %>% 
+            select(Year, AgeNew, GeoNew, Sex, Death) %>% rename(Age = AgeNew, Geo = GeoNew) %>% as_tibble()
 
-dat16.1f <- dat16.1[, c("AgeNew", "GeoNew", "Frauen")]
-names(dat16.1f)[3] <- "Death"
-dat16.1f$Year <- 2016
-dat16.1f$Sex <- 2
-
-dat16Long <- rbind(dat16.1m, dat16.1f)
-head(dat16Long)
-
-## 2017
-dat17.1m <- dat17.1[, c("AgeNew", "GeoNew", "Männer")]
-names(dat17.1m)[3] <- "Death"
-dat17.1m$Year <- 2017
-dat17.1m$Sex <- 1
-
-dat17.1f <- dat17.1[, c("AgeNew", "GeoNew", "Frauen")]
-names(dat17.1f)[3] <- "Death"
-dat17.1f$Year <- 2017
-dat17.1f$Sex <- 2
-
-dat17Long <- rbind(dat17.1m, dat17.1f)
-head(dat17Long)
-
-## Put 2018 also into format
+## Modify format for 2018 
 head(dat18)
 
-## Recode sex
-sexRecode <- cbind(c("m", "w"), c(1, 2))
-sexRecode
-
-dat18$SexNew <- mapvalues(dat18$Sex, from = sexRecode[,1], to = sexRecode[,2])
-head(dat18)
-head(dat17Long)
-
-dat18Long <- dat18[, c("AgeNew", "GeoNum", "Death", "Year" , "SexNew")]
-names(dat18Long) <- names(dat17Long)
-head(dat18Long)
-
+dat18.lm <- dat18 %>% as_tibble() %>% mutate(Sex = mapvalues(Sex, from = c("m", "w"), to = c(1,2))) %>% 
+            select(Year, AgeNew, Sex, GeoNum, Death) %>% rename(Age = AgeNew, Geo = GeoNum)
 
 ## Create Final death data set
-datLong <- rbind(dat16Long, dat17Long, dat18Long)
-head(datLong)
-length(unique(datLong$GeoNew))
+datLong <- rbind(dat16.1m, dat17.lm, dat18.lm)
 
 
-## Load Population Data
-
+##############################################################################
+##############################################################################
+##############################################################################
+## Load Population Data (obtained from Genesis)
 pop2015 <- read.csv("pop2015.csv", skip = 7, header = FALSE,
                     stringsAsFactors = FALSE, sep = ";", nrows=length(8:43047))
-head(pop2015)
-tail(pop2015)
+pop2015$Year <- 2015
 
 pop2016 <- read.csv("pop2016.csv", skip = 7, header = FALSE,
                     stringsAsFactors = FALSE, sep = ";", nrows=length(8:43047))
-head(pop2016)
-tail(pop2016)
+pop2016$Year <- 2016
 
 pop2017 <- read.csv("pop2017.csv", skip = 7, header = FALSE,
                     stringsAsFactors = FALSE, sep = ";", nrows=length(8:43047))
-head(pop2017)
-tail(pop2017)
+pop2017$Year <- 2017
 
 pop2018 <- read.csv("pop2018.csv", skip = 7, header = FALSE,
                     stringsAsFactors = FALSE, sep = ";", nrows=length(8:43047))
-head(pop2018)
-tail(pop2018)
+pop2018$Year <- 2018
 
-names(pop2015) <- names(pop2016) <- names(pop2017) <- names(pop2018) <- c("Geo", "Name", "Age", "Total", "Male", "Female")
+names(pop2015) <- names(pop2016) <- names(pop2017) <- names(pop2018) <- c("Geo", "Name", "Age", "Total", "Male", "Female", "Year")
 
-## Reduce to Kreise 
-pop2015$GeoNew <- as.numeric(pop2015$Geo)
-pop2015.1 <- pop2015[!is.na(pop2015$GeoNew),]
-head(pop2015.1)
+# Merge data together
+pop <- rbind(pop2015, pop2016, pop2017, pop2018)
 
-## Edit Hamburg and Berlin
-pop2015.1$GeoNew[pop2015.1$GeoNew == 2] <- 2000
-pop2015.1$GeoNew[pop2015.1$GeoNew == 11] <- 11000
+# Edit data to include only NUTS 3 and match NUTS 3 Format and 
+# to match modified districts (Osterode (03156) and Göettingen (03152)
+## to newly created Kreis Göttingen (3159) applies for 2015)
 
-## Also edit Osterode (03156) and Göettingen (03152)
-## to newly created Kreis Göttingen (3159)
-pop2015.1$GeoNew[pop2015.1$GeoNew == 3156] <- 3159
-pop2015.1$GeoNew[pop2015.1$GeoNew == 3152] <- 3159
+pop1 <- pop %>% as_tibble() %>% mutate(GeoNew = as.numeric(Geo)) %>% filter(!is.na(as.numeric(GeoNew))) %>% 
+        mutate(GeoNew = ifelse(GeoNew %in% c(3156, 3152, 2, 11), 
+               mapvalues(GeoNew, from = c(3156, 3152, 2, 11), to = c(3159, 3159, 2000, 11000)), GeoNew)) %>% 
+        filter(GeoNew %in% link$GeoNew) 
 
-
-pop2015.2 <- pop2015.1[pop2015.1$GeoNew %in% link$GeoNew,]
-miss2015 <- link$GeoNew[! link$GeoNew %in% pop2015.2$GeoNew]
-length(unique(pop2015.2$GeoNew))
-head(pop2015.2)
-str(pop2015.2)
-
-pop2015.2$Total <- as.numeric(pop2015.2$Total)
-pop2015.2 <- pop2015.2[!is.na(pop2015.2$Total),]
-noPop2015 <- pop2015.2[is.na(pop2015.2$Total),]
-
-
-
-## Reduce to Kreise 2016
-pop2016$GeoNew <- as.numeric(pop2016$Geo)
-pop2016.1 <- pop2016[!is.na(pop2016$GeoNew),]
-head(pop2016.1)
-
-## Edit Hamburg and Berlin
-pop2016.1$GeoNew[pop2016.1$GeoNew == 2] <- 2000
-pop2016.1$GeoNew[pop2016.1$GeoNew == 11] <- 11000
-
-pop2016.2 <- pop2016.1[pop2016.1$GeoNew %in% link$GeoNew,]
-miss2016 <- link$GeoNew[! link$GeoNew %in% pop2016.2$GeoNew]
-length(unique(pop2016.2$GeoNew))
-head(pop2016.2)
-str(pop2016.2)
-
-pop2016.2$Total <- as.numeric(pop2016.2$Total)
-
-noPop2016 <- pop2016.2[is.na(pop2016.2$Total),]
-
-## Reduce to Kreise 2017
-pop2017$GeoNew <- as.numeric(pop2017$Geo)
-pop2017.1 <- pop2017[!is.na(pop2017$GeoNew),]
-head(pop2017.1)
-
-## Edit Hamburg and Berlin
-pop2017.1$GeoNew[pop2017.1$GeoNew == 2] <- 2000
-pop2017.1$GeoNew[pop2017.1$GeoNew == 11] <- 11000
-
-pop2017.2 <- pop2017.1[pop2017.1$GeoNew %in% link$GeoNew,]
-miss2017 <- link$GeoNew[! link$GeoNew %in% pop2017.2$GeoNew]
-length(unique(pop2017.2$GeoNew))
-
-pop2017.2$Total <- as.numeric(pop2017.2$Total)
-
-noPop2017 <- pop2017.2[is.na(pop2017.2$Total),]
-
-## Reduce to Kreise 2018
-pop2018$GeoNew <- as.numeric(pop2018$Geo)
-pop2018.1 <- pop2018[!is.na(pop2018$GeoNew),]
-head(pop2018.1)
-
-## Edit Hamburg and Berlin
-pop2018.1$GeoNew[pop2018.1$GeoNew == 2] <- 2000
-pop2018.1$GeoNew[pop2018.1$GeoNew == 11] <- 11000
-
-pop2018.2 <- pop2018.1[pop2018.1$GeoNew %in% link$GeoNew,]
-miss2018 <- link$GeoNew[! link$GeoNew %in% pop2018.2$GeoNew]
-length(unique(pop2018.2$GeoNew))
-head(pop2018.2)
-str(pop2018.2)
-
-pop2018.2$Total <- as.numeric(pop2018.2$Total)
-
-noPop2018 <- pop2018.2[is.na(pop2018.2$Total),]
-
-
-## Missing Population Data
-unique(noPop2015$Name)
-unique(noPop2016$Name)
-unique(noPop2017$Name)
-unique(noPop2018$Name)
-
-length(unique(pop2015.2$GeoNew))
-length(unique(pop2016.2$GeoNew))
-length(unique(pop2017.2$GeoNew))
-length(unique(pop2018.2$GeoNew))
-
-## Reshape datasets and merge together
-pop2015.2$Year <- 2015
-pop2016.2$Year <- 2016
-pop2017.2$Year <- 2017
-pop2018.2$Year <- 2018
-
-pop <- rbind(pop2015.2, pop2016.2, pop2017.2, pop2018.2)
-
-
-popF <- pop[, c("Age", "Female", "GeoNew", "Year"),]
-popM <- pop[, c("Age", "Male", "GeoNew", "Year"),]
-
-popM$Sex <- 1
-popF$Sex <- 2
-head(popF)
-names(popF) <- names(popM) <- c("Age", "Pop", "GeoNew", "Year", "Sex")
-popLong <- rbind(popM, popF)
+# # Check if coding worked correct
+# test <- table(pop1$GeoNew, pop1$Year)
+# dim(test)
 
 ## Recode Age 
-ageRecode <- cbind(unique(popLong$Age), c(rep(1, 60), rep(60, 5),
+ageRecode <- cbind(unique(pop1$Age), c(rep(1, 60), rep(60, 5),
                                           rep(65, 5), rep(70, 5), 75, 80, 85, 90, 2))
 
-popLong$AgeNew <- mapvalues(popLong$Age, from = ageRecode[,1], to = ageRecode[,2])
+pop1$AgeNew <- mapvalues(pop1$Age, from = ageRecode[,1], to = ageRecode[,2])
 
-head(popLong)
+head(pop1)
 
-popLongDeath <- popLong[popLong$AgeNew > 2,]
-popLongTot <- popLong[popLong$AgeNew == 2,]
+# Make Table long format
+# Entries for "Landkreis" with modification are marked with "-", delete those entries
+pop2 <- pop1 %>% filter(AgeNew >= 60) %>% pivot_longer(cols = c(Male, Female), names_to = "Sex", values_to = "Pop") %>% 
+        mutate(Sex = recode(Sex, Male = 1, Female = 2), Pop = as.numeric(Pop)) %>% 
+        select(Year, GeoNew, AgeNew, Sex, Pop) %>% rename(Geo = GeoNew, Age = AgeNew) %>% filter(!is.na(Pop)) %>% 
+        group_by(Year, Geo, Age, Sex) %>% summarise(Pop = sum(Pop))
 
 ## write datafile for Total population (potentially for PD estimation)
-write.table(popLongTot, file = "totalPopulation2015to18_20201027.txt",
+write.table(pop2, file = "totalPopulation2015to18Germany_20210510.txt",
             row.names = FALSE)
+
 
 ## Aggregate Data
 head(popLongDeath)
