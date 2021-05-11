@@ -103,7 +103,7 @@ dat18.lm <- dat18 %>% as_tibble() %>% mutate(Sex = mapvalues(Sex, from = c("m", 
             select(Year, AgeNew, Sex, GeoNum, Death) %>% rename(Age = AgeNew, Geo = GeoNum)
 
 ## Create Final death data set
-datLong <- rbind(dat16.1m, dat17.lm, dat18.lm)
+datLong <- rbind(dat16.lm, dat17.lm, dat18.lm)
 
 
 ##############################################################################
@@ -135,75 +135,97 @@ pop <- rbind(pop2015, pop2016, pop2017, pop2018)
 # to match modified districts (Osterode (03156) and Göettingen (03152)
 ## to newly created Kreis Göttingen (3159) applies for 2015)
 
-pop1 <- pop %>% as_tibble() %>% mutate(GeoNew = as.numeric(Geo)) %>% filter(!is.na(as.numeric(GeoNew))) %>% 
+pop1 <- 
+        pop %>% 
+        as_tibble() %>% 
+        mutate(GeoNew = as.numeric(Geo)) %>% 
+        filter(!is.na(as.numeric(GeoNew))) %>% 
         mutate(GeoNew = ifelse(GeoNew %in% c(3156, 3152, 2, 11), 
-               mapvalues(GeoNew, from = c(3156, 3152, 2, 11), to = c(3159, 3159, 2000, 11000)), GeoNew)) %>% 
-        filter(GeoNew %in% link$GeoNew) 
+               mapvalues(GeoNew, 
+                         from = c(3156, 3152, 2, 11), 
+                         to = c(3159, 3159, 2000, 11000)), GeoNew)) %>% 
+        filter(GeoNew %in% link$GeoNew) %>% 
+        pivot_longer(cols = c(Male, Female), names_to = "Sex", values_to = "Pop") %>% 
+        mutate(Sex = mapvalues(Sex, from =c("Male", "Female"), to = c(1,2))) %>%
+        select(Age, Year, GeoNew, Sex, Pop) %>% 
+        rename(Geo = GeoNew)
 
 # # Check if coding worked correct
-# test <- table(pop1$GeoNew, pop1$Year)
+# test <- table(pop1$Geo, pop1$Year)
 # dim(test)
 
 ## Recode Age 
 ageRecode <- cbind(unique(pop1$Age), c(rep(1, 60), rep(60, 5),
                                           rep(65, 5), rep(70, 5), 75, 80, 85, 90, 2))
-
 pop1$AgeNew <- mapvalues(pop1$Age, from = ageRecode[,1], to = ageRecode[,2])
-
-head(pop1)
 
 # Make Table long format
 # Entries for "Landkreis" with modification are marked with "-", delete those entries
-pop2 <- pop1 %>% filter(AgeNew >= 60) %>% pivot_longer(cols = c(Male, Female), names_to = "Sex", values_to = "Pop") %>% 
-        mutate(Sex = recode(Sex, Male = 1, Female = 2), Pop = as.numeric(Pop)) %>% 
-        select(Year, GeoNew, AgeNew, Sex, Pop) %>% rename(Geo = GeoNew, Age = AgeNew) %>% filter(!is.na(Pop)) %>% 
-        group_by(Year, Geo, Age, Sex) %>% summarise(Pop = sum(Pop))
+pop2 <- 
+        pop1 %>% 
+        filter(AgeNew >= 60) %>% 
+        mutate(Pop = as.numeric(Pop)) %>% 
+        select(Year, Geo, AgeNew, Sex, Pop) %>% 
+        rename(Age = AgeNew) %>% 
+        filter(!is.na(Pop)) %>% 
+        group_by(Year, Geo, Age, Sex) %>% 
+        summarise(Pop = sum(Pop))
 
 ## write datafile for Total population (potentially for PD estimation)
 write.table(pop2, file = "totalPopulation2015to18Germany_20210510.txt",
             row.names = FALSE)
-
-
-## Aggregate Data
-head(popLongDeath)
-
-str(popLongDeath)
-popLongDeath$Pop <- as.numeric(popLongDeath$Pop)
-
-popArray <- tapply(popLongDeath$Pop, INDEX = list(popLongDeath$AgeNew,
-                                                  popLongDeath$Year,
-                                                  popLongDeath$Sex,
-                                                  popLongDeath$GeoNew), FUN = sum)
-
-avePopArray <- apply(popArray, MARGIN = c(1,3,4), FUN = function(x) (x[-1]+x[-length(x)])/2)
-
-avePop <- as.data.frame.table(avePopArray, stringsAsFactors = FALSE)
-head(avePop)
-names(avePop) <- c("Year", "Age", "Sex", "Geo", "Expo")
-
-avePop$ID <- paste(avePop$Age, avePop$Year, avePop$Sex, avePop$Geo,
-                   sep ="_")
-
-datLong$ID <- paste(datLong$AgeNew, datLong$Year, datLong$Sex, datLong$GeoNew,
-                    sep ="_")
+ 
+# Calculate Average population
+pop3 <- 
+        pop2 %>% 
+        pivot_wider(id_cols = c(Sex, Age, Geo), names_from = Year, values_from = Pop) %>%
+        mutate(ave2016=(`2015`+`2016`)/2,
+               ave2017=(`2016`+`2017`)/2,
+               ave2018=(`2017`+`2018`)/2) %>% 
+        pivot_longer(cols = c(ave2016, ave2017, ave2018), names_to = "Year", values_to = "Pop") %>% 
+        select(Age, Sex, Geo, Year, Pop) %>% 
+        mutate(Year = mapvalues(Year, from =c("ave2016", "ave2017", "ave2018"), to = 2016:2018))
 
 ## Merge Population Data with Death Data
-avePopMerge <- avePop[,c("ID", "Expo")]
-finalDataGer <- merge(datLong, avePopMerge, by = "ID")
-dim(finalDataGer)
-dim(datLong)
-dim(avePopMerge)
-head(finalDataGer)
+datLong$Geo <- as.numeric(datLong$Geo)
+pop3$Year <- as.numeric(pop3$Year)
+popDx <- pop3 %>% 
+        ungroup() %>%  
+        left_join(datLong)
 
 ## Link Area Size to Data
-head(link)
-linkArea <- link[,c("GeoNew", "fl17")]
-names(linkArea)[2] <- "Area" 
-finalDataGerArea <- merge(finalDataGer, linkArea, by = "GeoNew")
-dim(finalDataGerArea)
+link$GeoNew <- as.numeric(link$GeoNew)
+popDx1 <- 
+        link %>% 
+        select(GeoNew, fl17) %>% 
+        as_tibble() %>%  
+        rename(Geo = GeoNew, Area=fl17) %>% 
+        right_join(popDx)
+
+## Calculate Population Density
+# Total Population also including ages below 60
+
+totPop <- 
+        pop1 %>%
+        mutate(PopNum = as.numeric(Pop)) %>% 
+        group_by(Geo, Year) %>%
+        summarise(TotPop = sum(PopNum)) %>% 
+        pivot_wider(id_cols = Geo, names_from = Year, values_from = TotPop) %>% 
+        mutate(aveTot = (`2015`+`2016`+`2016`+`2017`+`2017`+`2018`)/6) %>% 
+        select(Geo, aveTot) %>% 
+        right_join(popDx1)
+
+totPop$PD <- totPop$aveTot/totPop$Area
 
 
-## Calculate Total average population
+
+# Mean of average population as nominator for PD
+
+        
+
+        select(Year, Geo, )
+        group_by(Geo)
+        
 
 head(popLongTot)
 popLongTot$Pop <- as.numeric(popLongTot$Pop)
