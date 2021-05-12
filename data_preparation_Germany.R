@@ -207,51 +207,27 @@ popDx1 <-
 
 totPop <- 
         pop1 %>%
+        filter(AgeNew == 2) %>% 
         mutate(PopNum = as.numeric(Pop)) %>% 
         group_by(Geo, Year) %>%
         summarise(TotPop = sum(PopNum)) %>% 
         pivot_wider(id_cols = Geo, names_from = Year, values_from = TotPop) %>% 
         mutate(aveTot = (`2015`+`2016`+`2016`+`2017`+`2017`+`2018`)/6) %>% 
         select(Geo, aveTot) %>% 
-        right_join(popDx1)
+        right_join(popDx1) %>% 
+        mutate(PD = aveTot/Area) %>% 
+        mutate(PDcat = case_when(PD <= 100 ~ 1,
+                                 PD > 100 & PD <= 1000 ~ 2, 
+                                 PD > 1000 ~ 3)) 
 
-totPop$PD <- totPop$aveTot/totPop$Area
+# alternative definiton rural urban
+altDef <- read.table("AlternativeRuralUrban_DefGER2017_INKAR20210512.csv", 
+                     header = FALSE, skip = 2, sep = ";", stringsAsFactors = FALSE)
 
+finalDat_GER <- 
+        altDef %>% 
+        select(V1, V4, V5) %>% 
+        rename(Geo = V1, distTyp = V4, rurUrb = V5) %>% 
+        as_tibble() %>% 
+        right_join(totPop)
 
-
-# Mean of average population as nominator for PD
-
-        
-
-        select(Year, Geo, )
-        group_by(Geo)
-        
-
-head(popLongTot)
-popLongTot$Pop <- as.numeric(popLongTot$Pop)
-popTotArray <- tapply(popLongTot$Pop, INDEX = list(popLongTot$Year,
-                                                   popLongTot$GeoNew), FUN = sum)
-dim(popTotArray)
-aveTot <- apply(popTotArray, MARGIN = 2, FUN =
-                  function(x)
-                    mean((x[-1]+x[-length(x)])/2))
-length(aveTot)
-
-finalDataGerArea$TotPop <- as.numeric(mapvalues(finalDataGerArea$GeoNew, from
-                                                =names(aveTot), to = aveTot))
-head(finalDataGerArea)
-str(finalDataGerArea)
-
-finalDataGerArea$PD <- finalDataGerArea$TotPop/finalDataGerArea$Area
-
-## quantile(finalDataGerArea$PD, probs = seq(0, 1, by = 0.25))
-## finalDataGerArea[finalDataGerArea$GeoNew == 8212,]
-
-write.table(finalDataGerArea, file = "dataGermany20201103.txt",
-            row.names = FALSE)
-
-
-
-
-
-## Merge AGS to data for 2016 and 2017
