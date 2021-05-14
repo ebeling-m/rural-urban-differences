@@ -131,22 +131,30 @@ unique(finalDat$Geo[!finalDat$Geo %in% census$GeoNew])
 
 head(census)
 unique(census$Area.Population.Densit)
+names(census1)
 
 census1 <- 
   census %>%
   as_tibble() %>% 
-  filter(Area.Population.Densit == "Area Hectares") %>% 
-  select(GeoNew, value) %>% 
-  rename(Geo = GeoNew, Area = value) %>% 
-  group_by(Geo) %>% 
-  summarise(Area = sum(as.numeric(Area))) %>% 
+  filter(Area.Population.Densit %in% c("Area Hectares", "All usual residents") & 
+           Rural.Urban %in% c("Urban (total)", "Rural (total)")) %>%
+  group_by(GeoNew, Area.Population.Densit, Rural.Urban) %>% 
+  summarise(valueNew = sum(as.numeric(value))) %>% 
+  mutate(Rural.UrbanNew = mapvalues(Rural.Urban, from = c("Rural (total)", "Urban (total)"), to = c("R", "U"))) %>% 
+  pivot_wider(id_cols = c(GeoNew), names_from = c(Area.Population.Densit, Rural.Urban), values_from = valueNew) %>% 
+  rename(Geo = GeoNew, 
+         RuralPop = `All usual residents_Rural (total)`, 
+         UrbanPop = `All usual residents_Urban (total)`,
+         AreaRural = `Area Hectares_Rural (total)`, 
+         AreaUrban = `Area Hectares_Urban (total)`) %>% 
+  mutate(Area = AreaRural+AreaUrban) %>% 
+  select(Geo, RuralPop, UrbanPop, Area) %>% 
   mutate(Area = Area*0.01) 
-
-
 
 ## Calculation total population, Source similar to other Pop Data
 totPop <- read.table("TotalPopulation_data20201019.tsv", header = TRUE,
                    sep ="", stringsAsFactors = FALSE)
+head(totPop)
 
 totPop1 <- 
   totPop %>%
@@ -171,6 +179,100 @@ densENW <-
 
 # Load alternative rural urban definition, Source: Census 2011
 rur <- read.csv("RUC_LAD_2011_EN_LU.csv", header = TRUE, stringsAsFactors = FALSE)
-dim(rur)
+names(rur)
+
+# The RUC 2011 is only available for England but recode of areas
+# necessary to fit adminstrative borders in current years 
+rur$LAD18CD[!rur$LAD18CD %in% totPop1$Geo]
+totPop1$Geo[!totPop1$Geo %in% rur$LAD18CD]
+
+# Relabel districts
+rur$LAD18CD_new <- rur$LAD18CD
+
+# # District codes and replacement (for details see previous coding on census object)
+# oldCodes <- c("E07000201", "E07000204", "E07000206", "E07000205", "E06000028", "E07000048", "E06000029", "E07000190", "E07000191",
+#   "E07000049", "E07000050", "E07000051", "E07000052", "E07000053", "E07000004", "E07000005", "E07000006", "E07000007")
+# newCodes <- c(rep("E07000245", 2), rep("E07000244", 2), rep("E06000058", 3), rep("E07000246", 2), rep("E06000059", 5), rep("E06000060", 4))
+# 
+# distCodes <- cbind(oldCodes, newCodes)
+
+# Reduce dataset to required variables
+
+rur1 <- 
+  rur %>%
+  as_tibble() %>% 
+  select(LAD18CD, LAD18CD_new, Broad.RUC11) %>%
+  rename(GeoOld = LAD18CD, Geo=LAD18CD_new, RUR_EN=Broad.RUC11)
+
+## Forest Heath (E07000201) and St Edmundsbury (E07000204) merged to
+## West Suffolk (E07000245)
+rur1$Geo[rur1$Geo %in% c("E07000201", "E07000204")] <- "E07000245"
+
+## Waveney (E07000206) and Suffolk Coastal (E07000205) merged to East
+## Suffolk (E07000244)
+rur1$Geo[rur1$Geo %in% c("E07000206", "E07000205")] <-
+  "E07000244"
+
+## Bournemouth (E06000028), Christchurch (E07000048) and Poole
+## (E06000029) merged to "Bournemouth, Christchurch and Poole" (E06000058)
+rur1$Geo[rur1$Geo %in% c("E06000028", "E07000048", "E06000029")] <-
+  "E06000058"
+
+## Taunton Deane (E07000190) and West Somerset (E07000191) merged to
+## Somerset West and Taunton (E07000246)
+rur1$Geo[rur1$Geo %in% c("E07000190", "E07000191")] <-
+  "E07000246"
+
+## East Dorset (E07000049), North Dorset (E07000050), Purbeck
+## (E07000051), West Dorset (E07000052), Weymouth and Portland (E07000053)
+## merged to Dorset (E06000059)
+rur1$Geo[rur1$Geo %in% c("E07000049",
+                                   "E07000050", "E07000051",
+                                   "E07000052", "E07000053")] <-
+  "E06000059"
+
+## E07000004 Aylesbury Vale, E07000005 Chiltern, E07000006 South Bucks
+## E07000007 Wycombe merged to Buckinghamshire "E06000060"
+rur1$Geo[rur1$Geo %in% c("E07000004",
+                                   "E07000005", "E07000006",
+                                   "E07000007")] <-
+  "E06000060"
+
+# Check how old districts are classified
+# Recode for new districts where old districts had more than one type
+oldCodes <- c("E07000201", "E07000204", "E07000206", "E07000205", "E06000028", "E07000048", "E06000029", "E07000190", "E07000191",
+  "E07000049", "E07000050", "E07000051", "E07000052", "E07000053", "E07000004", "E07000005", "E07000006", "E07000007")
+newCodes <- c(rep("E07000245", 2), rep("E07000244", 2), rep("E06000058", 3), rep("E07000246", 2), rep("E06000059", 5), rep("E06000060", 4))
+
+rurOld <- 
+  rur1 %>% filter(GeoOld %in% oldCodes)
+table(rurOld$Geo, rurOld$RUR_EN)
+
+# Recode for new districts where old districts had more than one type
+rur1$RUR_ENadj <- rur1$RUR_EN
+rur1$RUR_ENadj[rur1$Geo %in% c("E06000059", "E06000060", "E07000244", "E07000246")] <- "Urban with Significant Rural"
+
+# Reduce to unique districts and merge with PD data  
+
+distChar <- 
+  rur1 %>% 
+  distinct(Geo, .keep_all = TRUE) %>% 
+  select(Geo, RUR_ENadj) %>% 
+  rename(RUR_EN = RUR_ENadj) %>% 
+  right_join(densENW)
+ 
+# Rebuild German district types
+# Kreisfreie Großstädte: Kreisfreie Städte mit mind. 100.000 Einwohnern
+# Städtische Kreise: Kreise mit einem Bevölkerungsanteil in Groß- und Mittelstädten von mind. 50% und einer  Einwohnerdichte von mind. 150 E./km²; sowie Kreise mit einer Einwohnerdichte ohne Groß- und Mittelstädte von mind. 150 E./km²
+# Ländliche Kreise mit Verdichtungsansätzen: Kreise mit einem Bevölkerungsanteil in Groß- und Mittelstädten von mind. 50%,  aber einer  Einwohnerdichte unter 150 E./km², sowie Kreise mit einem Bevölkerungsanteil in Groß- und Mittelstädten unter 50% mit einer Einwohnerdichte ohne Groß- und Mittelstädte von mind. 100 E./km²
+# Dünn besiedelte ländliche Kreise: Kreise mit einem Bevölkerungsanteil in Groß- und Mittelstädten unter 50% und Einwohnerdichte ohne Groß- und Mittelstädte unter 100 E./km²
+ 
+
+# Merge with ENW death/pop data
+datENW <- left_join(finalDat, distChar)
+
+
+
+
 
 
