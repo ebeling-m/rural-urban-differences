@@ -224,7 +224,7 @@ totPop <-
 altDef <- read.table("AlternativeRuralUrban_DefGER2017_INKAR20210512.csv", 
                      header = FALSE, skip = 2, sep = ";", stringsAsFactors = FALSE)
 
-finalDat_GER <- 
+datGER <- 
         altDef %>% 
         select(V1, V4, V5) %>% 
         rename(Geo = V1, distTyp = V4, rurUrb = V5) %>% 
