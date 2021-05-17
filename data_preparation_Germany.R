@@ -1,4 +1,4 @@
-source("packages_functions.r")
+# source("packages_functions.r")
 ## Turn off exponential writing
 options(scipen = 999, java.parameters = "-Xmx8000m")
 
@@ -86,15 +86,31 @@ dat18$AgeNew <- mapvalues(dat18$Age, from = ageRecode18[,1], to = ageRecode18[,2
 head(dat18)
 
 ## Modify format of data for 2016 and 2017 to match 2018
-dat16.lm <- dat16.1 %>% select(AgeNew, GeoNew, Männer, Frauen) %>% pivot_longer(cols = c(Frauen, Männer), names_to = "Sex1", 
-                                                                                values_to = "Death") %>%
-            mutate(Sex = mapvalues(Sex1, from = c("Frauen" , "Männer"), to = c(2,1)), Year = 2016) %>% 
-            select(Year, AgeNew, GeoNew, Sex, Death) %>% rename(Age = AgeNew, Geo = GeoNew) %>% as_tibble()
+dat16.lm <- 
+        dat16.1 %>% 
+        select(AgeNew, GeoNew, Männer, Frauen) %>% 
+        pivot_longer(cols = c(Frauen, Männer), 
+                     names_to = "Sex1", 
+                     values_to = "Death") %>%
+            mutate(Sex = mapvalues(Sex1, 
+                                   from = c("Frauen" , "Männer"), 
+                                   to = c(2,1)), Year = 2016) %>% 
+            select(Year, AgeNew, GeoNew, Sex, Death) %>% 
+        rename(Age = AgeNew, Geo = GeoNew) %>% 
+        as_tibble()
 
-dat17.lm <- dat17.1 %>% select(AgeNew, GeoNew, Männer, Frauen) %>% pivot_longer(cols = c(Frauen, Männer), names_to = "Sex1", 
-                                                                                values_to = "Death") %>%
-            mutate(Sex = mapvalues(Sex1, from = c("Frauen" , "Männer"), to = c(2,1)), Year = 2017) %>% 
-            select(Year, AgeNew, GeoNew, Sex, Death) %>% rename(Age = AgeNew, Geo = GeoNew) %>% as_tibble()
+dat17.lm <- 
+        dat17.1 %>% 
+        select(AgeNew, GeoNew, Männer, Frauen) %>% 
+        pivot_longer(cols = c(Frauen, Männer), 
+                     names_to = "Sex1", 
+                     values_to = "Death") %>%
+            mutate(Sex = mapvalues(Sex1, 
+                                   from = c("Frauen" , "Männer"), 
+                                   to = c(2,1)), Year = 2017) %>% 
+            select(Year, AgeNew, GeoNew, Sex, Death) %>% 
+        rename(Age = AgeNew, Geo = GeoNew) %>% 
+        as_tibble()
 
 ## Modify format for 2018 
 head(dat18)
@@ -216,8 +232,8 @@ totPop <-
         select(Geo, aveTot) %>% 
         right_join(popDx1) %>% 
         mutate(PD = aveTot/Area) %>% 
-        mutate(PDcat = case_when(PD <= 100 ~ 1,
-                                 PD > 100 & PD <= 1000 ~ 2, 
+        mutate(PDcat = case_when(PD <= 300 ~ 1,
+                                 PD > 300 & PD <= 1000 ~ 2, 
                                  PD > 1000 ~ 3)) 
 
 # alternative definiton rural urban
