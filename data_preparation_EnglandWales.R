@@ -131,7 +131,6 @@ unique(finalDat$Geo[!finalDat$Geo %in% census$GeoNew])
 
 head(census)
 unique(census$Area.Population.Densit)
-names(census1)
 
 census1 <- 
   census %>%
@@ -173,8 +172,8 @@ totPop1 <-
 densENW <- 
   right_join(totPop1, census1) %>% 
   mutate(PD = aveTot/Area) %>% 
-  mutate(PDcat = case_when(PD <= 100 ~ 1,
-                           PD > 100 & PD <= 1000 ~ 2, 
+  mutate(PDcat = case_when(PD <= 300 ~ 1,
+                           PD > 300 & PD <= 1000 ~ 2, 
                            PD > 1000 ~ 3)) 
 
 # Load alternative rural urban definition, Source: Census 2011
