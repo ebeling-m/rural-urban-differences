@@ -27,5 +27,8 @@ source("unadjusted_rural-urban_mortDiff.R")
 # Step 5: Unadjusted rural-urban differences
 # Note that these estimation is computationally 
 # intensive 
+# Number of cores must be adjusted according to local computer 
+
+
 source("adjusted_rural-urban_mortDiff.R")
 
