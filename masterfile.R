@@ -22,5 +22,10 @@ source("data_preparation_EnglandWales.R")
 source("scatter_LE_PD.R")
 
 # Step 4: Unadjusted rural-urban differences
+source("unadjusted_rural-urban_mortDiff.R")
 
+# Step 5: Unadjusted rural-urban differences
+# Note that these estimation is computationally 
+# intensive 
+source("adjusted_rural-urban_mortDiff.R")
 
