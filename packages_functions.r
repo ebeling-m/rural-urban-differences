@@ -1,7 +1,7 @@
 # Packages
 library(xlsx)
 library(tidyverse)
-
+library(doParallel)
 
 # Additional Function borrowed from plyr package
 
@@ -26,4 +26,24 @@ mapvalues <- function (x, from, to, warn_missing = TRUE)
   }
   x[!mapidxNA] <- to[mapidx[!mapidxNA]]
   x
+}
+
+# Function for calculating life expectancy 
+
+lifetable <- function(mx){
+  n <- rep(5, length(mx))
+  ax <- rep(2.5, length(mx))
+  qx <- (n*mx)/(1+(n-ax)*mx)
+  qx[length(qx)] <- 1
+  px <- 1-qx
+  lx <- c(100000, cumprod(px)*100000)[-(length(mx)+1)]
+  dx <- c(-diff(lx), lx[length(lx)])
+  Lx1 <- n[-length(n)]*lx[-1]+ax[-length(ax)]*dx[-length(dx)]
+  Lx2 <- dx[length(dx)]/mx[length(mx)]
+  Lx <- c(Lx1, Lx2)
+  Tx <- rev(cumsum(rev(Lx)))
+  ex <- Tx/lx
+  out <- ex[1]
+  # out <- data.frame(lx=lx, Lx=Lx, Tx=Tx, ex=ex)
+  return(out)
 }
