@@ -160,7 +160,7 @@ pop1 <-
                mapvalues(GeoNew, 
                          from = c(3156, 3152, 2, 11), 
                          to = c(3159, 3159, 2000, 11000)), GeoNew)) %>% 
-        filter(GeoNew %in% link$GeoNew) %>% 
+        filter(GeoNew %in% link$GeoNew & !Total == "-") %>% 
         pivot_longer(cols = c(Male, Female), names_to = "Sex", values_to = "Pop") %>% 
         mutate(Sex = mapvalues(Sex, from =c("Male", "Female"), to = c(1,2))) %>%
         select(Age, Year, GeoNew, Sex, Pop) %>% 
@@ -223,6 +223,7 @@ popDx1 <-
 
 totPop <- 
         pop1 %>%
+        as_tibble() %>% 
         filter(AgeNew == 2) %>% 
         mutate(PopNum = as.numeric(Pop)) %>% 
         group_by(Geo, Year) %>%
