@@ -1,3 +1,6 @@
+## Turn off exponential writing and increase 
+options(scipen = 999, java.parameters = "-Xmx8000m")
+
 # Packages
 library(xlsx)
 library(tidyverse)
