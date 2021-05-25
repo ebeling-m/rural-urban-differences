@@ -24,11 +24,9 @@ source("scatter_LE_PD.R")
 # Step 4: Unadjusted rural-urban differences
 source("unadjusted_rural-urban_mortDiff.R")
 
-# Step 5: Unadjusted rural-urban differences
+# Step 5 and 6: Life expectancy adjusted rural-urban differences
+# Life expectancy adjusted differences inclduing intermediate group
 # Note that these estimation is computationally 
 # intensive 
 # Number of cores must be adjusted according to local computer 
-
-
-source("adjusted_rural-urban_mortDiff.R")
-
+source("adjusted_rural-urban_mortDiff_wIntermediate.R")
