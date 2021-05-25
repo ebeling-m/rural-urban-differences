@@ -1,7 +1,4 @@
 # source("packages_functions.r")
-## Turn off exponential writing
-options(scipen = 999, java.parameters = "-Xmx8000m")
-
 # File with NUTS 3 codes for Germany
 ## Corrected Version for NUTS for Börde and Jerichower Land
 link <- read.xlsx("Referenz Gemeinden-GVB-Kreise_NUTSCorrected20201103.xlsx",
