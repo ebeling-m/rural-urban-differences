@@ -69,10 +69,11 @@ pop2 <-
   group_by(Year, Age, Sex, Geo) %>% 
   summarise(Pop = sum(Pop))
 
-# Merge population and death data
+# Merge population and death data and exclude "City of London" (E09000001) and "Isles of Scilly" (E06000053) due to small population size
 finalDat <- 
   pop2 %>% 
-  right_join(death2)
+  right_join(death2) %>% 
+  filter(!Geo %in% c("E06000053", "E09000001"))
 
 
 ## Load Density Data, Based on Census 2011
