@@ -50,7 +50,7 @@ e60_PD_GER <-
 
 # Scatterplots
 
-dev.off()
+
 pdf("scatterplot_LE_PD.pdf", family = "Times", width = 14, height = 14)
 profile <- layout(rbind(matrix(1:4, ncol = 2, byrow = FALSE), rep(5,2)),
                   heights = c(0.45, 0.45,0.1))

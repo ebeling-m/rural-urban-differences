@@ -122,7 +122,7 @@ colLE <- c('#41b6c4','#2c7fb8','#253494')
 ############################################
 ############################################
 
-dev.off()
+
 pdf("totals_adjusted_specificRegions.pdf", family = "Times", width = 24, height
     = 10, pointsize = 17)
 profile <- layout(rbind(1:6, 7:12, rep(13, 6)),

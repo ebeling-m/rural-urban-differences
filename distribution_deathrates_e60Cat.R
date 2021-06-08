@@ -39,7 +39,6 @@ ENW_GER <-
 
 # Plot distributions of mx by age and country 
 
-dev.off()
 pdf("hist_DeathRates_Males.pdf", width = 20, height = 10, pointsize = 15)
 theme_set(theme_minimal())
 ENW_GER1 <- ENW_GER %>% filter(Sex == 1)
@@ -54,7 +53,7 @@ ENW_GER1 <- ENW_GER %>% filter(Sex == 1)
 dev.off()
 
 
-dev.off()
+
 pdf("hist_DeathRates_Females.pdf", width = 20, height = 10, pointsize = 15)
 theme_set(theme_minimal())
 ENW_GER1 <- ENW_GER %>% filter(Sex == 2)

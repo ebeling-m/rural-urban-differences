@@ -55,7 +55,6 @@ mort_diff <-
 ##################################################
 ##################################################
 
-dev.off()
 pdf("totals_unadjusted.pdf", family = "Times", width = 14)
 profile <- layout(rbind(matrix(1:2, ncol = 2, byrow = FALSE), rep(3,2)),
                   heights = c(0.9,0.1))

@@ -94,7 +94,7 @@ mort_diff_adj_EN <- mort_diff_adj_EN %>% bind_rows()
 
 colLE <- c('#41b6c4','#2c7fb8','#253494')
 
-dev.off()
+
 pdf("totals_adjusted_England_alternativeRuralUrban.pdf", family = "Times", width = 24, height
     = 10, pointsize = 17)
 profile <- layout(rbind(1:3, 4:6, rep(7, 3)),
