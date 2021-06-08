@@ -137,7 +137,7 @@ mtext("Germany", 3, line = 1, cex = 2)
 mtext("Age group", 3, line = 0.2, cex = 1, adj = -0.15)
 text(x=0.75, y=7.5, "Males" , pos = 4, cex = 1.8)
 text(x=0.75, y=7.5+8, "Females" , pos = 4, cex = 1.8)
-mtext("Relative excess of mortality (rural-urban)", 1, line = 4.5, cex = 1.4)
+mtext("Relative mortality difference (rural-urban)", 1, line = 4.5, cex = 1.4)
 
 ## ## England & Wales
 plot(x=1:7, y=1:7, xaxs = "i", yaxs = "i", xaxt = "n", yaxt = "n",
@@ -207,7 +207,7 @@ mtext("England & Wales", 3, line = 1, cex = 2)
 ## mtext("Age group", 3, line = 0.2, cex = 1, adj = -0.15)
 ## text(x=-0.3, y=7.5, "Germany" , pos = 4, cex = 1.8)
 ## text(x=-0.3, y=7.5+8, "England & Wales" , pos = 4, cex = 1.8)
-mtext("Relative excess of mortality (rural-urban)", 1, line = 4.5, cex = 1.4)
+mtext("Relative mortality difference (rural-urban)", 1, line = 4.5, cex = 1.4)
 
 dev.off()
 
