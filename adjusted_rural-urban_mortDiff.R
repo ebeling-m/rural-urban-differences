@@ -219,7 +219,7 @@ for(country in c("GER", "ENW")){
     }
     if(le == 3 & country == "GER"){
       par(las = 0)
-      mtext("Relative excess of mortality (rural-urban)", 1, line = 4.5, cex
+      mtext("Relative mortality difference (rural-urban)", 1, line = 4.5, cex
             = 1.4, adj = -0.25)
     }
     
