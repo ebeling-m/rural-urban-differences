@@ -30,3 +30,18 @@ source("unadjusted_rural-urban_mortDiff.R")
 # intensive 
 # Number of cores must be adjusted according to local computer 
 source("adjusted_rural-urban_mortDiff_wIntermediate.R")
+
+# Step 7: Estimation of differentials using alternative definitons of rural-urban
+source("adjusted_rural-urban_mortDiff_alternativeRuralUrban_England.R")
+source("adjusted_rural-urban_mortDiff_alternativeRuralUrban_Germany.R")
+
+# Step 8: Sensitivity analysis using only selected regions 
+# (England & Wales without London region)
+# (Only West Germany)
+source("adjusted_rural-urban_mortDiff_specificRegions.R")
+
+# Step 9: Distrubtion of death rates by sex, country and age
+source("distribution_deathrates_e60Cat.R")
+
+# Step 10: Descriptive table distribution of districts 
+source("table_distribution_districts.R")
