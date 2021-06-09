@@ -160,12 +160,12 @@ for(country in c("GER", "ENW")){
       plotDat <- 
         mort_diff_adj %>% 
         filter(Sex == 2 & Age == age & e60Cat == le & Country == country)
-      xx <- c(rep(1, 2), rep(plotDat$med+1, 2))
+      xx <- c(rep(1, 2), rep(plotDat$med_RU+1, 2))
       yy <- c(0,1, 1, 0)+addFac[age]
       polygon(x=xx,y=yy, col = colLE[le], border = "white")
-      lines(x=c(plotDat$low, plotDat$up)+1, y=rep(yy[1]+0.5, 2),
+      lines(x=c(plotDat$low_RU, plotDat$up_RU)+1, y=rep(yy[1]+0.5, 2),
             pch = 16, typ = "p", cex = 1, col = "darkgray")
-      lines(x=c(plotDat$low, plotDat$up)+1, y=rep(yy[1]+0.5, 2),
+      lines(x=c(plotDat$low_RU, plotDat$up_RU)+1, y=rep(yy[1]+0.5, 2),
             typ = "l", lwd =1, col = "darkgray")
     }
   }
@@ -211,12 +211,12 @@ for(country in c("GER", "ENW")){
         mort_diff_adj %>% 
         filter(Sex == 1 & Age == age & e60Cat == le & Country == country)
       
-      xx <- c(rep(1, 2), rep(plotDat$med+1, 2))
+      xx <- c(rep(1, 2), rep(plotDat$med_RU+1, 2))
       yy <- c(0,1, 1, 0)+addFac[age]
       polygon(x=xx,y=yy, col = colLE[le], border = "white")
-      lines(x=c(plotDat$low, plotDat$up)+1, y=rep(yy[1]+0.5, 2),
+      lines(x=c(plotDat$low_RU, plotDat$up_RU)+1, y=rep(yy[1]+0.5, 2),
             pch = 16, typ = "p", cex = 1, col = "darkgray")
-      lines(x=c(plotDat$low, plotDat$up)+1, y=rep(yy[1]+0.5, 2),
+      lines(x=c(plotDat$low_RU, plotDat$up_RU)+1, y=rep(yy[1]+0.5, 2),
             typ = "l", lwd =1, col = "darkgray")
     }
     if(le == 3 & country == "GER"){
