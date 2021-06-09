@@ -38,32 +38,30 @@ ENW_GER <-
   left_join(ENW_GER)
 
 # Plot distributions of mx by age and country 
-
-pdf("hist_DeathRates_Males.pdf", width = 20, height = 10, pointsize = 15)
 theme_set(theme_minimal())
 ENW_GER1 <- ENW_GER %>% filter(Sex == 1)
+
+# pdf("hist_DeathRates_Males.pdf", width = 20, height = 10, pointsize = 15)
   ggplot(ENW_GER1, aes(x = mx, fill = e60Cat, colour = e60Cat)) +
-  geom_histogram(alpha = 0.2, aes(y=..density..)) + 
+  geom_histogram(alpha = 0.2, aes(y=..density..), bins = 30) + 
   geom_density(alpha = 0.3, size = 1) +
   scale_fill_manual(values=c('#41b6c4','#2c7fb8','#253494'), name = "Life expectancy tercile") +
   scale_color_manual(values=c('#41b6c4','#2c7fb8','#253494'), name = "Life expectancy tercile") +
   labs(x ="Death rates", y = "Density", fill = "LE Terciles")+
   facet_wrap(vars(Country, Age), nrow = 4, ncol = 7, scales = "free") +
   theme(legend.position = "bottom", legend.box = "vertical", legend.key=element_rect())
-dev.off()
+  ggsave("hist_DeathRates_Males.pdf", width = 20, height = 10)
 
 
-
-pdf("hist_DeathRates_Females.pdf", width = 20, height = 10, pointsize = 15)
-theme_set(theme_minimal())
 ENW_GER1 <- ENW_GER %>% filter(Sex == 2)
+# pdf("hist_DeathRates_Females.pdf", width = 20, height = 10, pointsize = 15)
 ggplot(ENW_GER1, aes(x = mx, fill = e60Cat, colour = e60Cat)) +
-  geom_histogram(alpha = 0.2, aes(y=..density..)) + 
+  geom_histogram(alpha = 0.2, aes(y=..density..), bins = 30) + 
   geom_density(alpha = 0.3, size = 1) +
   scale_fill_manual(values=c('#41b6c4','#2c7fb8','#253494'), name = "Life expectancy tercile") +
   scale_color_manual(values=c('#41b6c4','#2c7fb8','#253494'), name = "Life expectancy tercile") +
   labs(x ="Death rates", y = "Density", fill = "LE Terciles")+
   facet_wrap(vars(Country, Age), nrow = 4, ncol = 7, scales = "free") +
   theme(legend.position = "bottom", legend.box = "vertical", legend.key=element_rect())
-dev.off()
+ggsave("hist_DeathRates_Females.pdf", width = 20, height = 10)
 
